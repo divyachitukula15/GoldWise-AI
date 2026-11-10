@@ -1,0 +1,37 @@
+
+name: GoldWise AI Scheduler
+
+on:
+  schedule:
+    - cron: "30 2 * * *"   # 8:00 AM IST
+    - cron: "30 10 * * *"  # 4:00 PM IST
+  workflow_dispatch:
+
+jobs:
+  run-goldwise:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scheduled report
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          if [ "$(date -u +%H)" = "02" ]; then
+            python -m scripts.daily_report
+          else
+            python -m scripts.change_report
+          fi
